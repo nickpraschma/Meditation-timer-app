@@ -1,15 +1,12 @@
 // Packages
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:just_audio/just_audio.dart';
 
 // Models
 import '../models/sound.dart';
 
 // Widgets
 import '../widgets/countdown_timer.dart';
-
-// Providers
-import '../providers/audio_player_provider.dart';
 
 class TimerScreen extends StatefulWidget {
   final Duration meditationDuration;
@@ -28,13 +25,13 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
-  late Player player;
+  late AudioPlayer player;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-      player = Provider.of<Player>(context, listen: false);
+      player = AudioPlayer();
     });
   }
 

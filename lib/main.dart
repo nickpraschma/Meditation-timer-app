@@ -3,19 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Providers
-import 'providers/audio_player_provider.dart';
+import 'providers/home_screen_provider.dart';
 
 // Screens
 import 'screens/home_screen.dart';
-import 'screens/timer_screen.dart';
 
 void main() {
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (ctx) => Player()),
-    ],
-    child: const MyApp(),
-  ));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<HomeScreenProvider>(
+            create: (_) => HomeScreenProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -35,9 +37,9 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: '/',
+      initialRoute: HomeScreen.routeName,
       routes: {
-        '/': (ctx) => const HomeScreen(),
+        HomeScreen.routeName: (ctx) => const HomeScreen(),
       },
     );
   }

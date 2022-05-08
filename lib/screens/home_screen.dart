@@ -1,15 +1,15 @@
 // Packages
 import 'package:flutter/material.dart';
-import 'package:duration_picker/duration_picker.dart';
 import 'package:duration/duration.dart';
-import 'package:meditation_app/screens/timer_screen.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 
 // Widgets
+import '../widgets/begin_meditation_button.dart';
 import '../widgets/timer_input_field.dart';
 
-// Providers
-import '../providers/audio_player_provider.dart';
+// Packages
+import '../providers/home_screen_provider.dart';
 
 // Models
 import '../models/sound.dart';
@@ -18,6 +18,8 @@ import '../models/sound.dart';
 import '../data/data.dart';
 
 class HomeScreen extends StatefulWidget {
+  static const String routeName = '/';
+
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
@@ -25,16 +27,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Duration meditationDuration = const Duration(minutes: 15);
-  Sound? endingBell;
-  Sound? ambientSound;
-  late Player player;
+  // Duration meditationDuration = const Duration(minutes: 15);
+  // Sound? endingBell;
+  // Sound? ambientSound;
+  late AudioPlayer player;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-      player = Provider.of<Player>(context, listen: false);
+      player = AudioPlayer();
     });
   }
 
@@ -46,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var provider = Provider.of<HomeScreenProvider>(context);
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -84,28 +87,26 @@ class _HomeScreenState extends State<HomeScreen> {
               const _TimerScreenDivider(),
               TimerInputField(
                 leftText: "DURATION",
-                rightText: prettyDuration(meditationDuration),
-                onTap: _getDuration,
+                rightText: prettyDuration(provider.meditationDuration),
+                onTap: () =>
+                    Provider.of<HomeScreenProvider>(context, listen: false)
+                        .getDuration(context),
               ),
               const _TimerScreenDivider(),
               TimerInputField(
                 leftText: "Ambient Sound",
-                rightText: ambientSound?.name ?? "None",
+                rightText: provider.ambientSound?.name ?? "None",
                 onTap: _getAmbientSound,
               ),
               const _TimerScreenDivider(),
               TimerInputField(
                 leftText: "Ending Bell",
-                rightText: endingBell?.name ?? "None",
+                rightText: provider.endingBell?.name ?? "None",
                 onTap: _getEndingBell,
               ),
               const _TimerScreenDivider(),
               const SizedBox(height: 30),
-              _BeginMeditationButton(
-                meditationDuration: meditationDuration,
-                endingBell: endingBell,
-                ambientSound: ambientSound,
-              ),
+              const BeginMeditationButton(),
             ],
           ),
         ),
@@ -113,22 +114,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _getDuration() async {
-    var resultingDuration = await showDurationPicker(
-      context: context,
-      initialTime: meditationDuration,
-    );
-    setState(() => meditationDuration = resultingDuration!);
-  }
-
   void _getEndingBell() async {
     var resultingBell = await getSound('Select Ending Bell', bells);
-    setState(() => endingBell = resultingBell);
+    Provider.of<HomeScreenProvider>(context, listen: false)
+        .setEndingBell(resultingBell);
+    // setState(() => endingBell = resultingBell);
   }
 
   void _getAmbientSound() async {
     var resultingSound = await getSound('Select Ambient Sound', ambientSounds);
-    setState(() => ambientSound = resultingSound);
+    Provider.of<HomeScreenProvider>(context, listen: false)
+        .setAmbientSound(resultingSound);
+    // setState(() => ambientSound = resultingSound);
   }
 
   Future<Sound?> getSound(String title, List<Sound> sounds) async {
@@ -240,52 +237,6 @@ class _TimerScreenDivider extends StatelessWidget {
     return Divider(
       color: Colors.grey[600],
       thickness: 1,
-    );
-  }
-}
-
-class _BeginMeditationButton extends StatelessWidget {
-  final Duration meditationDuration;
-  final Sound? endingBell;
-  final Sound? ambientSound;
-
-  const _BeginMeditationButton({
-    Key? key,
-    required this.meditationDuration,
-    required this.endingBell,
-    required this.ambientSound,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      customBorder: const CircleBorder(),
-      child: Container(
-        height: 120,
-        width: 120,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withOpacity(0.75),
-        ),
-        child: const Icon(
-          Icons.play_arrow,
-          color: Colors.black,
-          size: 45,
-        ),
-      ),
-      onTap: () => Navigator.push(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (c, a1, a2) => TimerScreen(
-            meditationDuration: meditationDuration,
-            endingBell: endingBell,
-            ambientSound: ambientSound,
-          ),
-          transitionsBuilder: (_, anim, a2, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      ),
     );
   }
 }
